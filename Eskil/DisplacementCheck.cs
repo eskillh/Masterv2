@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace TimberStructureGenerator
+namespace Masterv2.Eskil
 {
     public class DisplacementCheck : GH_Component
     {
@@ -19,14 +19,14 @@ namespace TimberStructureGenerator
         }
 
         //INPUT
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddNumberParameter("Displacement", "d", "Maximum displacement of the structure [cm]", GH_ParamAccess.item);
             pManager.AddNumberParameter("Span", "s", "Span of the truss structure [m]", GH_ParamAccess.item);
         }
 
         //OUTPUT
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddTextParameter("Result", "r", "If the check is ok or not", GH_ParamAccess.item);
         }

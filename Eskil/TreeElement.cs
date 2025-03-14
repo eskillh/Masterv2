@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Grasshopper.Kernel.Types;
-namespace Masterv2
+namespace Masterv2.Eskil
 {
     public class TreeElement
     {
@@ -13,7 +13,7 @@ namespace Masterv2
         public double h { get; set; }
         public double b { get; set; }
         public double A { get; set; }
-        
+
         public TreeElement(double l, string mat, double he, double br, double Ar)
         {
             L = l;

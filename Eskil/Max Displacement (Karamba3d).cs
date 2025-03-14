@@ -24,7 +24,7 @@ using Grasshopper.Kernel.Data;
 
 
 
-namespace Masterv2
+namespace Masterv2.Eskil
 {
     public class Max_Displacement__Karamba3d_ : GH_Component
     {
@@ -38,9 +38,9 @@ namespace Masterv2
         {
         }
 
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddCurveParameter("TopCurves","TopCrvs","Curves that represents the top beams", GH_ParamAccess.list);
+            pManager.AddCurveParameter("TopCurves", "TopCrvs", "Curves that represents the top beams", GH_ParamAccess.list);
             pManager.AddCurveParameter("TrussCurves", "TrussCrvs", "Curves that represents the truss beams", GH_ParamAccess.list);
             pManager.AddCurveParameter("BottomCurves", "BtmCrvs", "Curves that represents the bottom beams", GH_ParamAccess.list);
             pManager.AddPointParameter("SupportPoints", "sPts", "Points of the location of the supports", GH_ParamAccess.list);
@@ -49,9 +49,9 @@ namespace Masterv2
                 "[topH, topB, trussH, trussB, bottomH, bottomB]", GH_ParamAccess.list);
         }
 
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("MaxDisplacement","dMax","Maximum displacement of the truss", GH_ParamAccess.item);
+            pManager.AddNumberParameter("MaxDisplacement", "dMax", "Maximum displacement of the truss", GH_ParamAccess.item);
             pManager.AddGenericParameter("test", "t", "testing output", GH_ParamAccess.item);
         }
 
@@ -63,10 +63,10 @@ namespace Masterv2
             List<Point3d> supports3d = new List<Point3d>();
             string material = "";
             List<double> crosecs = new List<double>();
-            
+
             DA.GetDataList(0, topcrvs);
             DA.GetDataList(1, trusscrvs);
-            DA.GetDataList (2, bottomcrvs);
+            DA.GetDataList(2, bottomcrvs);
             DA.GetDataList(3, supports3d);
             DA.GetData(4, ref material);
             DA.GetDataList(5, crosecs);
@@ -78,7 +78,7 @@ namespace Masterv2
             var bottom3 = ConvertToLine3(bottomcrvs);
 
             //KarambaCommon Toolkit for operations
-            var k3d = new KarambaCommon.Toolkit();
+            var k3d = new Toolkit();
 
             //Creating cross sections
             string family = GetString(material, @"Material:\s+(\w+)");
@@ -86,15 +86,15 @@ namespace Masterv2
             double E = GetDouble(material, @"E:(-?\d+(\.\d+)?(E-?\d+)?)");
             double Gip = GetDouble(material, @"G12:(-?\d+(\.\d+)?(E-?\d+)?)");
             double Gtr = GetDouble(material, @"G3:(-?\d+(\.\d+)?(E-?\d+)?)");
-            double gamma = GetDouble(material, @"gamma:(-?\d+(\.\d+)?(E-?\d+)?)")/(100*100);
+            double gamma = GetDouble(material, @"gamma:(-?\d+(\.\d+)?(E-?\d+)?)") / (100 * 100);
             double ft = GetDouble(material, @"ft:(-?\d+(\.\d+)?(E-?\d+)?)");
             double fc = GetDouble(material, @"fc:(-?\d+(\.\d+)?(E-?\d+)?)");
-            double alphaT = GetDouble(material, @"alphaT:(-?\d+(\.\d+)?(E-?\d+)?)")/(100*100);
+            double alphaT = GetDouble(material, @"alphaT:(-?\d+(\.\d+)?(E-?\d+)?)") / (100 * 100);
 
-            FemMaterial mat = k3d.Material.IsotropicMaterial(family, 
-                name,E, Gip, Gtr, gamma, ft, fc, 
+            FemMaterial mat = k3d.Material.IsotropicMaterial(family,
+                name, E, Gip, Gtr, gamma, ft, fc,
                 FemMaterial.FlowHypothesis.rankine, alphaT);
-            
+
             double hT = crosecs[0];
             double bT = crosecs[1];
             double hTr = crosecs[2];
@@ -105,7 +105,7 @@ namespace Masterv2
             CroSec rectTr = k3d.CroSec.Trapezoid(hTr, bTr, bTr, mat, name, $"{name}:{hTr}x{bTr}");
             CroSec rectB = k3d.CroSec.Trapezoid(hB, bB, bB, mat, name, $"{name}:{hB}x{bB}");
             CroSec rect = k3d.CroSec.Trapezoid(10, 5, 5, mat, name, $"{name}:{10}x{5}");
-            
+
 
             //Creating beams
             var logger = new MessageLogger();
@@ -149,7 +149,7 @@ namespace Masterv2
             List<string> beamnames = new List<string>();
             for (int i = 0; i < topbeams.Count; i++)
                 beamnames.Add("Top Beam");
-            
+
             var list01 = ListFrom0To1(2);
             List<double> loadlist = new List<double>();
             for (int i = 0; i < list01.Count; i++)
@@ -164,22 +164,22 @@ namespace Masterv2
                 out _, out _, out _, out _, out _);
 
             //Analyzing model
-            IReadOnlyList<string> LCs = new List<string>{ "LC0"};
+            IReadOnlyList<string> LCs = new List<string> { "LC0" };
 
             Amodel = k3d.Algorithms.Analyze(model, LCs,
                 out IReadOnlyList<double> maxD,
                 out _, out _, out string w);
 
-            double maxDisp = maxD[0]*100;
-            Karamba.Models.Model o_model = new Karamba.Models.Model();
+            double maxDisp = maxD[0] * 100;
+            Model o_model = new Model();
             GH_Structure<IGH_Goo> ghStructure = new GH_Structure<IGH_Goo>();
             ghStructure.Append(new GH_ObjectWrapper(Amodel));
             DA.SetData(0, maxDisp);
             DA.SetData(1, ghStructure);
         }
 
-        private Karamba.Models.Model model;
-        private Karamba.Models.Model Amodel;
+        private Model model;
+        private Model Amodel;
         List<Point3> ConvertToPoint3(List<Point3d> pts3d)
         {
             List<Point3> pts3 = new List<Point3>();
@@ -218,7 +218,7 @@ namespace Masterv2
         double GetDouble(string text, string pattern)
         {
             var s = Regex.Match(text, pattern);
-            return double.Parse(s.Groups[1].Value, CultureInfo.InvariantCulture)*100*100;
+            return double.Parse(s.Groups[1].Value, CultureInfo.InvariantCulture) * 100 * 100;
         }
 
         List<double> ListFrom0To1(double div)
@@ -228,7 +228,7 @@ namespace Masterv2
             for (int i = 0; i < div; i++)
                 list.Add(i * step);
             return list;
-        }   
+        }
 
         /// <summary>
         /// Provides an Icon for the component.

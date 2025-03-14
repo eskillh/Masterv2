@@ -6,18 +6,18 @@ using System.Threading.Tasks;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 
-namespace Masterv2
+namespace Masterv2.Eskil
 {
     public class GH_Tree
     {
         public GH_Structure<GH_String> ToGHTree(List<TreeElement> elements)
         {
-            GH_Structure<GH_String> GHtree = new GH_Structure<GH_String> ();
+            GH_Structure<GH_String> GHtree = new GH_Structure<GH_String>();
 
             int i = 0;
             foreach (var elem in elements)
             {
-                GH_Path path = new GH_Path (i);
+                GH_Path path = new GH_Path(i);
 
                 GHtree.Append(new GH_String($"L: {elem.L}"), path);
                 GHtree.Append(new GH_String($"Mat: {elem.Mat}"), path);

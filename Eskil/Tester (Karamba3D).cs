@@ -29,7 +29,7 @@ using System.Web;
 using static System.Net.Mime.MediaTypeNames;
 using System.Runtime.InteropServices;
 
-namespace Masterv2
+namespace Masterv2.Eskil
 {
     public class Tester__Karamba3D_ : GH_Component
     {
@@ -46,7 +46,7 @@ namespace Masterv2
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddCurveParameter("TopCurves", "TopCrvs", "Curves that represents the top beams", GH_ParamAccess.list);
             pManager.AddCurveParameter("TrussCurves", "TrussCrvs", "Curves that represents the truss beams", GH_ParamAccess.list);
@@ -57,11 +57,11 @@ namespace Masterv2
             pManager.AddNumberParameter("CrossSectionWidths", "CroSecBs", "List of cross section widths to be iterated trough", GH_ParamAccess.list);
         }
 
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddNumberParameter("MaxDisplacement", "dMax", "Maximum displacement of the truss", GH_ParamAccess.item);
             pManager.AddGenericParameter("Utilization", "util", "Utilization of the beams", GH_ParamAccess.list);
-            pManager.AddGenericParameter("test1","t1","",GH_ParamAccess.item);
+            pManager.AddGenericParameter("test1", "t1", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("test2", "t2", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("test3", "t3", "", GH_ParamAccess.list);
         }
@@ -91,7 +91,7 @@ namespace Masterv2
             var bottom3 = ConvertToLine3(bottomcrvs);
 
             //KarambaCommon Toolkit for operations
-            var k3d = new KarambaCommon.Toolkit();
+            var k3d = new Toolkit();
 
             //Defining the material from the input and class (MaterialList.GetMaterial())
             string family = GetString(material, @"Material:\s+(\w+)");
@@ -101,7 +101,7 @@ namespace Masterv2
             double Gip = GetDouble(material, @"G12:(-?\d+(\.\d+)?(E-?\d+)?)");
             double Gtr = GetDouble(material, @"G3:(-?\d+(\.\d+)?(E-?\d+)?)");
             double gamma = GetDouble(material, @"gamma:(-?\d+(\.\d+)?(E-?\d+)?)") / (100 * 100);
-            double ft = matr[0]*100*100;//GetDouble(material, @"ft:(-?\d+(\.\d+)?(E-?\d+)?)")
+            double ft = matr[0] * 100 * 100;//GetDouble(material, @"ft:(-?\d+(\.\d+)?(E-?\d+)?)")
             double fc = matr[1] * 100 * 100;//GetDouble(material, @"fc:(-?\d+(\.\d+)?(E-?\d+)?)");
             double fm = matr[2];
             double fv = matr[3];
@@ -110,7 +110,7 @@ namespace Masterv2
             FemMaterial mat = k3d.Material.IsotropicMaterial(family,
                 name, E, Gip, Gtr, gamma, ft, fc,
                 FemMaterial.FlowHypothesis.rankine, alphaT);
-            
+
             //For the rest of the operations, I need a for loop to iterate trought the different cross sections
             List<double> results = new List<double>(); //list to store the max displacements for the different cross sections
             List<double> util = new List<double>();
@@ -120,9 +120,9 @@ namespace Masterv2
             List<Curve> critcurve = new List<Curve>();
 
             //For displacement check
-            var span = (new Line(supports3d[0], supports3d[1])).Length;
+            var span = new Line(supports3d[0], supports3d[1]).Length;
             var check = span * 100 / 250;
-            
+
             //Creating cross sections
             double h = crosecHs[0];
             double b = crosecBs[0];
@@ -178,10 +178,10 @@ namespace Masterv2
             }
 
             //Creating joints
-            topbeams[0].joint = new Karamba.Joints.JointAgent(new double?[] { null, null, null, null, 0.0, 0.0 });
-            topbeams[topbeams.Count-1].joint = new Karamba.Joints.JointAgent(new double?[] { null, null, null, null, null, null, null, null, null, null, 0.0, 0.0 });
-            topbeams[topbeams.Count/2].joint = new Karamba.Joints.JointAgent(new double?[] { null, null, null, null, 0.0, 0.0 });
-            
+            topbeams[0].joint = new JointAgent(new double?[] { null, null, null, null, 0.0, 0.0 });
+            topbeams[topbeams.Count - 1].joint = new JointAgent(new double?[] { null, null, null, null, null, null, null, null, null, null, 0.0, 0.0 });
+            topbeams[topbeams.Count / 2].joint = new JointAgent(new double?[] { null, null, null, null, 0.0, 0.0 });
+
             //Creating loads
             var loads = new List<Load>();
             loads.Add(k3d.Load.GravityLoad(new Vector3(0, 0, 1), "LC0"));
@@ -232,10 +232,10 @@ namespace Masterv2
 
             //Getting the internal forces for the analyzed model
             Karamba.Results.BeamForces.solve(Amodel, allbeamnames, elementGuids,
-                "LC0", new List<double> {0, 0.5,1 },
+                "LC0", new List<double> { 0, 0.5, 1 },
                 out List<List<List<Vector3>>> forces2,
                 out List<List<List<Vector3>>> moments2, out _, out _, out _);
-            
+
             //Adding the info about the length of the beams 
             List<string> beaminfo = new List<string>();
 
@@ -251,9 +251,9 @@ namespace Masterv2
 
             var bbeamlength = bottom3[0].Length * bottom3.Count();
             beaminfo.Add($"Bottom beam:{bbeamlength} m");
-           
+
             DataTree<Vector3> forcestree = new DataTree<Vector3>();
-            for (int i = 0; i < forces2.Count; i++ )
+            for (int i = 0; i < forces2.Count; i++)
             {
                 for (int j = 0; j < forces2[i].Count; j++)
                 {
@@ -280,35 +280,35 @@ namespace Masterv2
             List<double> utillist = new List<double>();
 
             List<double> Nlist = new List<double>(); //Creating a list for the N values
-            for (int i = 0; i < forces2.Count/2; i++)
+            for (int i = 0; i < forces2.Count / 2; i++)
                 for (int j = 0; j < forces2[i].Count; j++)
                     Nlist.Add(forces2[i][j][0][0]);
 
             List<double> Mlist = new List<double>(); //Creating a list for the M values
-            for (int i = 0; i < moments2.Count/2; i++)
+            for (int i = 0; i < moments2.Count / 2; i++)
                 for (int j = 0; j < moments2[i].Count; j++)
                     Mlist.Add(moments2[i][j][0][1]);
 
             double kmod = 0.9;
             double g_m = 1.3;
             double fmd = fm * kmod / g_m;
-            double fcd = Math.Abs(fc) * kmod / (g_m*1000);
-            double ftd = Math.Abs(ft) * kmod / (g_m*1000);
+            double fcd = Math.Abs(fc) * kmod / (g_m * 1000);
+            double ftd = Math.Abs(ft) * kmod / (g_m * 1000);
             double A = h * b * 100; //Area in mm^2
-            double I = ((b * Math.Pow(h,3)) / 12)*10000;
+            double I = b * Math.Pow(h, 3) / 12 * 10000;
 
             for (int i = 0; i < Nlist.Count; i++)
             {
                 if (Nlist[i] > 0)
                 {
-                    double u = Math.Abs(Math.Pow(((Nlist[i]*1000/A) / fcd),2)) + 
-                        Math.Abs(((Mlist[i]*10000000*h/2)/(I))/ fmd);
+                    double u = Math.Abs(Math.Pow(Nlist[i] * 1000 / A / fcd, 2)) +
+                        Math.Abs(Mlist[i] * 10000000 * h / 2 / I / fmd);
                     utillist.Add(u);
                 }
                 if (Nlist[i] <= 0)
                 {
-                    double u = Math.Abs((Nlist[i]/A) / (ftd)) + 
-                        Math.Abs(((Mlist[i] * 10000000 * h / 2) / (I)) / (fmd));
+                    double u = Math.Abs(Nlist[i] / A / ftd) +
+                        Math.Abs(Mlist[i] * 10000000 * h / 2 / I / fmd);
                     utillist.Add(u);
                 }
             }
@@ -330,10 +330,10 @@ namespace Masterv2
             double fvd = fv * kmod / g_m;
             double k_cr = 0.67;
             var shearlist = new List<double>();
-            var S = (b * 10 * Math.Pow(h * 10, 2)) / 6; //need to put in the loop for varying CS
+            var S = b * 10 * Math.Pow(h * 10, 2) / 6; //need to put in the loop for varying CS
             for (int i = 0; i < Vlist.Count; i++)
             {
-                var tau = Math.Abs((Vlist[i]*1000*S)/(I*b*10*k_cr));
+                var tau = Math.Abs(Vlist[i] * 1000 * S / (I * b * 10 * k_cr));
                 shearlist.Add(tau / fvd);
             }
 
@@ -350,13 +350,13 @@ namespace Masterv2
             var topplines = new List<Polyline>();
 
             Polyline onehalfpl = new Polyline();
-            for (int i = 0; i < top3.Count/2 + 1; i++)
+            for (int i = 0; i < top3.Count / 2 + 1; i++)
             {
                 onehalfpl.Add(toplines[i].From);
-            }  
+            }
 
             Polyline sndhalfpl = new Polyline();
-            for (int i = top3.Count / 2-1; i < top3.Count; i++)
+            for (int i = top3.Count / 2 - 1; i < top3.Count; i++)
                 sndhalfpl.Add(toplines[i].To);
 
             topplines.Add(onehalfpl);
@@ -365,7 +365,7 @@ namespace Masterv2
             //Max utilizaiton for each of the two arches
             var utilarch = new List<double>();
             utilarch.Add(maxutillist.GetRange(0, maxutillist.Count / 2).Max());
-            
+
             //Creating Brep of the beams
             List<Line3> beams3 = new List<Line3>();
             List<Curve> allcurves = new List<Curve>();
@@ -374,8 +374,8 @@ namespace Masterv2
             var bucklinglengths = new List<double>(); //Buckling lengths for further use
             var lef = new List<double>(); //Effective length for LTB check
 
-            for (int i = 0; i <top3.Count; i++) //Buckling length: assume 1 for all (conservative)
-            { 
+            for (int i = 0; i < top3.Count; i++) //Buckling length: assume 1 for all (conservative)
+            {
                 beams3.Add(top3[i]);
                 allcurves.Add(topcrvs[i]);
                 bucklinglengths.Add(top3[i].Length * 0.7 * 1000);
@@ -394,7 +394,7 @@ namespace Masterv2
                 lef.Add(0);
 
                 var basept = new Point3d(i, 10, 0);
-                var crnpt = new Point3d(b / 100 + i , truss3[i].Length + 10, h / 100);
+                var crnpt = new Point3d(b / 100 + i, truss3[i].Length + 10, h / 100);
                 var trussbx = new BoundingBox(basept, crnpt);
                 Breps.Add(Brep.CreateFromBox(trussbx));
             }
@@ -410,12 +410,12 @@ namespace Masterv2
                 var bottombx = new BoundingBox(basept, crnpt);
                 Breps.Add(Brep.CreateFromBox(bottombx));
             }
-            
+
             List<string> beamres = new List<string>();
             if (top3[0].Length < bottom3[0].Length) //Arches
             {
                 var maxutilarch1 = maxutillist.GetRange(0, maxutillist.Count / 2).Max();
-                var maxutilarch2 = maxutillist.GetRange(maxutillist.Count/2, maxutillist.Count / 2).Max();
+                var maxutilarch2 = maxutillist.GetRange(maxutillist.Count / 2, maxutillist.Count / 2).Max();
                 var maxsheararch1 = maxshearlist.GetRange(0, maxshearlist.Count / 2).Max();
                 var maxsheararch2 = maxshearlist.GetRange(maxshearlist.Count / 2, maxshearlist.Count / 2).Max();
                 beamres.Add($"Element: {0}, {allbeamnames[0]}, " +
@@ -425,7 +425,7 @@ namespace Masterv2
                 beamres.Add($"Element: {1}, {allbeamnames[1]}, " +
                         $"Length: {Math.Round(topplines[1].Length, 4)}, " +
                         $"Utilization: {Math.Round(maxutilarch2, 4)}, " +
-                        $"Shear Utilizaiton: {Math.Round(maxsheararch2, 4)  }");
+                        $"Shear Utilizaiton: {Math.Round(maxsheararch2, 4)}");
                 for (int i = top3.Count; i < beams3.Count; i++)
                     beamres.Add($"Element: {i}, {allbeamnames[i]}, " +
                         $"Length: {Math.Round(beams3[i].Length, 4)}, " +
@@ -437,7 +437,7 @@ namespace Masterv2
                 for (int i = 0; i < beams3.Count; i++)
                     beamres.Add($"Element: {i}, {allbeamnames[i]}, " +
                         $"Length: {Math.Round(beams3[i].Length, 4)}, " +
-                        $"Utilization: {Math.Round(maxutillist[i],4)}, " +
+                        $"Utilization: {Math.Round(maxutillist[i], 4)}, " +
                         $"Shear Utilization: {Math.Round(maxshearlist[i], 4)}");
             }
 
@@ -457,30 +457,30 @@ namespace Masterv2
             List<double> Mmax = new List<double>();
             for (int i = 0; i < splitM.Count; i++)
                 Mmax.Add(splitM[i].Max(Math.Abs));
-        
+
             //Buckling checks
             var I_y = I;
-            var I_z = ((h * Math.Pow(b, 3)) / 12) * 10000;
+            var I_z = h * Math.Pow(b, 3) / 12 * 10000;
             var E005 = matr[4]; //kN/mm^2
             var beta_c = 0.2; //for solid timber (konstruksjonstre)
             var buckly = new List<double>();
             var bucklz = new List<double>();
             var kczlist = new List<double>();
-            
+
             //Buckling check as columns
             for (int i = 0; i < bucklinglengths.Count; i++)
             {
                 var lk = bucklinglengths[i];
 
                 //Buckling in Y direction
-                var gamma_y = lk / (Math.Sqrt(I_y / A));
-                var gamma_rely = (gamma_y / Math.PI) * Math.Sqrt(fc/(E005*1000*1000));
+                var gamma_y = lk / Math.Sqrt(I_y / A);
+                var gamma_rely = gamma_y / Math.PI * Math.Sqrt(fc / (E005 * 1000 * 1000));
                 var k_y = 0.5 * (1 + beta_c * (gamma_rely - 0.3) + Math.Pow(gamma_rely, 2));
                 var k_cy = 1 / (k_y + Math.Sqrt(Math.Pow(k_y, 2) - Math.Pow(gamma_rely, 2)));
 
                 //Buckling in Z direction
-                var gamma_z = lk / (Math.Sqrt(I_z / A));
-                var gamma_relz = (gamma_z / Math.PI) * Math.Sqrt(fc / (E005 * 1000 * 1000));
+                var gamma_z = lk / Math.Sqrt(I_z / A);
+                var gamma_relz = gamma_z / Math.PI * Math.Sqrt(fc / (E005 * 1000 * 1000));
                 var k_z = 0.5 * (1 + beta_c * (gamma_relz - 0.3) + Math.Pow(gamma_relz, 2));
                 var k_cz = 1 / (k_z + Math.Sqrt(Math.Pow(k_z, 2) - Math.Pow(gamma_relz, 2)));
                 kczlist.Add(k_cz);
@@ -488,8 +488,8 @@ namespace Masterv2
                 //Buckling checks
                 if (Nmax[i] != 0)
                 {
-                    var bchecky = (Nmax[i]*1000/A) / (k_cy*fcd) + ((Mmax[i]*10000000*h/2)/(I_y)) / (fmd);
-                    var bcheckz = (Nmax[i] * 1000 / A) / (k_cz * fcd) + 0.7*((Mmax[i] * 10000000 * h / 2) / (I_y)) / (fmd);
+                    var bchecky = Nmax[i] * 1000 / A / (k_cy * fcd) + Mmax[i] * 10000000 * h / 2 / I_y / fmd;
+                    var bcheckz = Nmax[i] * 1000 / A / (k_cz * fcd) + 0.7 * (Mmax[i] * 10000000 * h / 2 / I_y) / fmd;
                     buckly.Add(bchecky);
                     bucklz.Add(bcheckz);
                 }
@@ -503,16 +503,16 @@ namespace Masterv2
             }
 
             //Buckling check with LTB (as beams)
-            var I_tor = (1.0 / 3) * (1 - 0.63 * b / h) * h * Math.Pow(b, 3)*10000;
-            var W_y = (b*Math.Pow(h,2)*1000) / (6);
+            var I_tor = 1.0 / 3 * (1 - 0.63 * b / h) * h * Math.Pow(b, 3) * 10000;
+            var W_y = b * Math.Pow(h, 2) * 1000 / 6;
             var Gmean = matr[5]; //kN/mm^2
             var LTB = new List<double>();
             var test = new List<double>();
-         
+
             for (int i = 0; i < lef.Count; i++)
             {
-                var sig_mcrit = (Math.PI*Math.Sqrt(E005*I_z*Gmean*I_tor*1000000)) / (lef[i]*W_y);
-                var lambda_relm = Math.Sqrt(fm/sig_mcrit);
+                var sig_mcrit = Math.PI * Math.Sqrt(E005 * I_z * Gmean * I_tor * 1000000) / (lef[i] * W_y);
+                var lambda_relm = Math.Sqrt(fm / sig_mcrit);
                 double kcrit = new double();
                 if (lambda_relm <= 0.75)
                 {
@@ -531,7 +531,7 @@ namespace Masterv2
                     LTB.Add(0);
                 else
                 {
-                    var LTBcheck = Math.Pow((((Mmax[i] * 10000000 * h / 2) / (I_y)) / (kcrit * fmd)), 2) + (Nmax[i]*1000/A) / (kczlist[i]*fcd);
+                    var LTBcheck = Math.Pow(Mmax[i] * 10000000 * h / 2 / I_y / (kcrit * fmd), 2) + Nmax[i] * 1000 / A / (kczlist[i] * fcd);
                     LTB.Add(LTBcheck);
                 }
             }
@@ -547,8 +547,8 @@ namespace Masterv2
             if (LTB.Max() > 1.0)
                 bucklingLTB = "Buckling!";
 
-            var totalmaxutil = $"N+M Utilization: {Math.Round(maxutillist.Max(),4)} at {beams[maxutillist.IndexOf(maxutillist.Max())].id} nr {maxutillist.IndexOf(maxutillist.Max())+1}, " +
-                $"V Utilization: {Math.Round(maxshearlist.Max(),4)} at {beams[maxshearlist.IndexOf(maxshearlist.Max())].id} nr {maxshearlist.IndexOf(maxshearlist.Max())+1}, " +
+            var totalmaxutil = $"N+M Utilization: {Math.Round(maxutillist.Max(), 4)} at {beams[maxutillist.IndexOf(maxutillist.Max())].id} nr {maxutillist.IndexOf(maxutillist.Max()) + 1}, " +
+                $"V Utilization: {Math.Round(maxshearlist.Max(), 4)} at {beams[maxshearlist.IndexOf(maxshearlist.Max())].id} nr {maxshearlist.IndexOf(maxshearlist.Max()) + 1}, " +
                 $"Buckling Y: {bucklingY}, " +
                 $"Buckling Z = {bucklingZ}, " +
                 $"Buckling LTB = {bucklingLTB}";
@@ -560,12 +560,12 @@ namespace Masterv2
             DA.SetDataList(3, buckly);
             DA.SetDataList(4, bucklz);
         }
-       
+
         //Different functions used to shorten the main code
-        private Karamba.Models.Model model;
-        private Karamba.Models.Model Amodel;
-        private Karamba.Models.Model model2;
-       
+        private Model model;
+        private Model Amodel;
+        private Model model2;
+
         List<Point3> ConvertToPoint3(List<Point3d> pts3d)
         {
             List<Point3> pts3 = new List<Point3>();
@@ -639,7 +639,7 @@ namespace Masterv2
                 return null;
             }
         }
-        
+
         /// <summary>
         /// Gets the unique ID for this component. Do not change this ID after release.
         /// </summary>

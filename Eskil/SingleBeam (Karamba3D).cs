@@ -25,7 +25,7 @@ using System.Linq;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using UnitsNet;
 
-namespace Masterv2
+namespace Masterv2.Eskil
 {
     public class SingleBeam__Karamba3D_ : GH_Component
     {
@@ -42,7 +42,7 @@ namespace Masterv2
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddCurveParameter("BeamCurve", "BeamCrv", "Curves that represents the beam", GH_ParamAccess.item);
             pManager.AddTextParameter("Material", "mat", "Material of the beam", GH_ParamAccess.item);
@@ -50,7 +50,7 @@ namespace Masterv2
             pManager.AddNumberParameter("Width", "B", "List of cross section widths to be iterated trough", GH_ParamAccess.item, 5);
         }
 
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddNumberParameter("MaxDisplacement", "dMax", "Maximum displacement of the truss", GH_ParamAccess.list);
             pManager.AddNumberParameter("Utilization", "util", "Utilization of the beams", GH_ParamAccess.list);
@@ -65,7 +65,7 @@ namespace Masterv2
             string material = "";
             double H = new double();
             double B = new double();
-           
+
             DA.GetData(0, ref crv);
             DA.GetData(1, ref material);
             DA.GetData(2, ref H);
@@ -77,7 +77,7 @@ namespace Masterv2
             var crv3 = ConvertToLine3(crv);
 
             //KarambaCommon Toolkit for operations
-            var k3d = new KarambaCommon.Toolkit();
+            var k3d = new Toolkit();
 
             //Creating cross sections
             string family = GetString(material, @"Material:\s+(\w+)");
@@ -93,7 +93,7 @@ namespace Masterv2
             FemMaterial mat = k3d.Material.IsotropicMaterial(family,
                 name, E, Gip, Gtr, gamma, ft, fc,
                 FemMaterial.FlowHypothesis.mises, alphaT);
-            
+
 
             //For the rest of the operations, I need a for loop to iterate trought the different cross sections
             List<double> results = new List<double>(); //list to store the max displacements for the different cross sections
@@ -103,12 +103,12 @@ namespace Masterv2
             List<Curve> critcurve = new List<Curve>();
 
             //For displacement check
-            var span = (new Line(supports[0], supports[1])).Length;
+            var span = new Line(supports[0], supports[1]).Length;
             var check = span * 100 / 250;
             double h = H;
             double b = B;
             CroSec rect = k3d.CroSec.Trapezoid(h, b, b, mat, name, $"{name}:{h}x{b}");
-            
+
 
             //Creating beams
             var logger = new MessageLogger();
@@ -134,7 +134,7 @@ namespace Masterv2
             var loads = new List<Load>();
             loads.Add(k3d.Load.GravityLoad(new Vector3(0, 0, 1), "LC0"));
 
-            List<string> beamnames = new List<string> {"Beam"};
+            List<string> beamnames = new List<string> { "Beam" };
 
             var list01 = ListFrom0To1(2);
             List<double> loadlist = new List<double>();
@@ -156,7 +156,7 @@ namespace Masterv2
                 out IReadOnlyList<double> maxD,
                 out IReadOnlyList<Vector3> res, out IReadOnlyList<double> el, out string w);
 
-  
+
             double maxDisp = maxD[0] * 100;
             results.Add(maxDisp);
 
@@ -189,8 +189,8 @@ namespace Masterv2
         }
 
         //Different functions used to shorten the main code
-        private Karamba.Models.Model model;
-        private Karamba.Models.Model Amodel;
+        private Model model;
+        private Model Amodel;
         List<Point3> ConvertToPoint3(List<Point3d> pts3d)
         {
             List<Point3> pts3 = new List<Point3>();

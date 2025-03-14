@@ -7,7 +7,7 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 
-namespace Masterv2
+namespace Masterv2.Eskil
 {
     public class BeamLister : GH_Component
     {
@@ -22,14 +22,14 @@ namespace Masterv2
         }
 
         //INPUT
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddCurveParameter("Curves","crvs","Curves of the beams with the defined cross section and material", GH_ParamAccess.list);
+            pManager.AddCurveParameter("Curves", "crvs", "Curves of the beams with the defined cross section and material", GH_ParamAccess.list);
             pManager.AddTextParameter("Cross Section", "croSec", "Cross sections with the material of the beams", GH_ParamAccess.item);
         }
 
         //OUTPUT
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddTextParameter("Beams w/ properties", "b", "The beams with the cross section, length and strength class", GH_ParamAccess.tree);
             pManager.AddTextParameter("test", "t", "", GH_ParamAccess.item);
@@ -41,7 +41,7 @@ namespace Masterv2
         {
             List<Curve> crvs = new List<Curve>();
             DA.GetDataList(0, crvs);
-            String cs = "";
+            string cs = "";
             DA.GetData(1, ref cs);
 
             //Defining the material properties
@@ -71,12 +71,12 @@ namespace Masterv2
 
             GH_Tree holder = new GH_Tree();
             var beamTree = holder.ToGHTree(btree.elements);
-            
+
             DA.SetDataTree(0, beamTree);
             DA.SetData(1, A);
             DA.SetDataList(2, ls);
 
-            
+
         }
 
         //Getting the values from the string

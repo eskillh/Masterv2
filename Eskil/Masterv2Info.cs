@@ -3,7 +3,7 @@ using System.Drawing;
 using Grasshopper;
 using Grasshopper.Kernel;
 
-namespace Masterv2
+namespace Masterv2.Eskil
 {
     public class Masterv2Info : GH_AssemblyInfo
     {

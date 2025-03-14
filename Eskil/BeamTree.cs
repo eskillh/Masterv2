@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-///asdads 
-namespace Masterv2
+///asdads ffsdfsdfsdfsdf
+namespace Masterv2.Eskil
 {
     public class BeamTree
     {
@@ -15,7 +15,7 @@ namespace Masterv2
         {
             elements = new List<TreeElement>();
         }
-        
+
         public void AddElement(double l, string m, double h, double b, double A)
         {
             elements.Add(new TreeElement(l, m, h, b, A));

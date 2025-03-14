@@ -26,7 +26,7 @@ using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using UnitsNet;
 
 
-namespace Masterv2
+namespace Masterv2.Eskil
 {
     public class CS_Iterations__Karamba3D_ : GH_Component
     {
@@ -43,7 +43,7 @@ namespace Masterv2
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddCurveParameter("TopCurves", "TopCrvs", "Curves that represents the top beams", GH_ParamAccess.list);
             pManager.AddCurveParameter("TrussCurves", "TrussCrvs", "Curves that represents the truss beams", GH_ParamAccess.list);
@@ -54,7 +54,7 @@ namespace Masterv2
             pManager.AddNumberParameter("CrossSectionWidths", "CroSecBs", "List of cross section widths to be iterated trough", GH_ParamAccess.list);
         }
 
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddNumberParameter("MaxDisplacement", "dMax", "Maximum displacement of the truss", GH_ParamAccess.list);
             pManager.AddNumberParameter("Utilization", "util", "Utilization of the beams", GH_ParamAccess.list);
@@ -88,7 +88,7 @@ namespace Masterv2
             var bottom3 = ConvertToLine3(bottomcrvs);
 
             //KarambaCommon Toolkit for operations
-            var k3d = new KarambaCommon.Toolkit();
+            var k3d = new Toolkit();
 
             //Creating cross sections
             string family = GetString(material, @"Material:\s+(\w+)");
@@ -112,11 +112,11 @@ namespace Masterv2
             List<string> info = new List<string>();
             List<CroSec> allbeams = new List<CroSec>();
             //remove after testing
-            var utilfull = new List<double>(); 
+            var utilfull = new List<double>();
             List<Curve> critcurve = new List<Curve>();
 
             //For displacement check
-            var span = (new Line(supports3d[0], supports3d[1])).Length;
+            var span = new Line(supports3d[0], supports3d[1]).Length;
             var check = span * 100 / 250;
             foreach (double h in crosecHs)
             {
@@ -216,7 +216,7 @@ namespace Masterv2
                     //var maxindex = utiliz.IndexOf(utiliz.Max);
                     //critcurve.Add(topcrvs[maxindex]);
                     //Checking if displacement is OK
-                    if (maxDisp < check & (utiliz.Sum()/utiliz.Count()) <= 1)
+                    if (maxDisp < check & utiliz.Sum() / utiliz.Count() <= 1)
                         info.Add($"{rect.name}, Max Utilization:{Math.Round(maxutil, 4)}, " +
                             $"Displacement: {Math.Round(maxDisp, 4)} ");
                 }
@@ -246,8 +246,8 @@ namespace Masterv2
         }
 
         //Different functions used to shorten the main code
-        private Karamba.Models.Model model;
-        private Karamba.Models.Model Amodel;
+        private Model model;
+        private Model Amodel;
         List<Point3> ConvertToPoint3(List<Point3d> pts3d)
         {
             List<Point3> pts3 = new List<Point3>();

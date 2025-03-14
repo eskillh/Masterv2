@@ -5,7 +5,7 @@ using System.Linq;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace TimberStructureGenerator
+namespace Masterv2.Eskil
 {
     public class TrussMaker : GH_Component
     {
@@ -18,7 +18,7 @@ namespace TimberStructureGenerator
         }
 
         //INPUT
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddNumberParameter("Span", "S", "Span of the truss", GH_ParamAccess.item, 6);
             pManager.AddNumberParameter("Height", "H", "Middle height of the truss", GH_ParamAccess.item, 2);
@@ -26,7 +26,7 @@ namespace TimberStructureGenerator
         }
 
         //OUTPUT
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddCurveParameter("Top Beams", "TopBs", "Top beams of the truss", GH_ParamAccess.list);
             pManager.AddCurveParameter("Bottom Beams", "BtmBs", "Bottom beams of the truss", GH_ParamAccess.list);
@@ -54,11 +54,11 @@ namespace TimberStructureGenerator
             Line bot = new Line(pt1, pt2);
             Curve crv = bot.ToNurbsCurve();
             //int div = ((int)span) - 2;
-            int div = ((int)span) - (span % 2 == 0 ? 2 : 1);
-            double[] pms = crv.DivideByCount((div), true);
+            int div = (int)span - (span % 2 == 0 ? 2 : 1);
+            double[] pms = crv.DivideByCount(div, true);
             List<Point3d> bottompts = new List<Point3d>(); //list of the bottom points divided into
             List<Point3d> toppts = new List<Point3d>(); //list of the top points divided into
-            
+
             foreach (var p in pms)
             {
                 bottompts.Add(crv.PointAt(p));
@@ -93,7 +93,7 @@ namespace TimberStructureGenerator
                 }
 
                 //Creating the truss
-                for (int i = 1; i <bottompts.Count - 1; i++)
+                for (int i = 1; i < bottompts.Count - 1; i++)
                 {
                     Line v = new Line(toppts[i], bottompts[i]);
                     truss.Add(v.ToNurbsCurve());
@@ -135,7 +135,7 @@ namespace TimberStructureGenerator
             if (type == 2)
             {
                 var tbeam = new Polyline(new List<Point3d> { pt1, toppt, pt2 }).ToNurbsCurve(); //Making the top beam a linear beam
-                
+
                 //Creating the top and bottom beams
                 double[] pms2 = tbeam.DivideByCount(div, true);
                 foreach (var p in pms2) //Dividing the top beam into several divisions
@@ -160,7 +160,7 @@ namespace TimberStructureGenerator
                     truss.Add(tr.ToNurbsCurve());
                     truss.Add(tr2.ToNurbsCurve());
                 }
-                for (int i = 1; i <bottompts.Count - 1; i++) //Straight elements
+                for (int i = 1; i < bottompts.Count - 1; i++) //Straight elements
                 {
                     Line vert = new Line(toppts[i], bottompts[i]);
                     truss.Add(vert.ToNurbsCurve());
@@ -189,7 +189,7 @@ namespace TimberStructureGenerator
                 }
 
                 //Creating truss
-                for (int i = 1; i <bottompts.Count - 2; i++)
+                for (int i = 1; i < bottompts.Count - 2; i++)
                 {
                     Line cl = new Line(toppts[i], bottompts[i + 1]);
                     Line cl2 = new Line(bottompts[i], toppts[i + 1]);
@@ -243,12 +243,12 @@ namespace TimberStructureGenerator
                 double[] pnodes = tbeam.DivideByCount(div, true); //Division into where truss nodes is
                 var pms2 = tbeam.DivideByCount(div * 4, true); //Division into straight elements to approximate curve
                 var arcpts = new List<Point3d>(); //Full list of approximation points
-                
+
                 foreach (var p in pnodes) //Dividing the top beam into several divisions
                 {
                     toppts.Add(tbeam.PointAt(p));
                 }
-                
+
                 var tbeam2 = new Arc(pt1, toppt, pt2);
                 var rad = tbeam2.Radius;
                 var center = tbeam2.Center;
@@ -260,7 +260,7 @@ namespace TimberStructureGenerator
                     topnodepts.Add(new Point3d(point.X, point.Y, z));
 
                 }
-                
+
                 foreach (var p in pms2)
                     arcpts.Add(tbeam.PointAt(p));
 
@@ -268,10 +268,10 @@ namespace TimberStructureGenerator
                 for (int i = 0; i < topnodepts.Count - 1; i++)
                 {
                     Point3d between = new Point3d(
-                        (topnodepts[i].X + topnodepts[i+1].X)/2, 
+                        (topnodepts[i].X + topnodepts[i + 1].X) / 2,
                         (topnodepts[i].Y + topnodepts[i + 1].Y) / 2,
                          center.Z + Math.Sqrt(rad * rad - ((topnodepts[i].X + topnodepts[i + 1].X) / 2 - center.X) * ((topnodepts[i].X + topnodepts[i + 1].X) / 2 - center.X)));
-                    Curve arc = new Arc(topnodepts[i], between, topnodepts[i+1] ).ToNurbsCurve();
+                    Curve arc = new Arc(topnodepts[i], between, topnodepts[i + 1]).ToNurbsCurve();
                     topBeams.Add(arc);
                 }
 
@@ -280,7 +280,7 @@ namespace TimberStructureGenerator
                     Line bl = new Line(bottompts[i], bottompts[i + 1]);
                     bottomBeams.Add(bl.ToNurbsCurve());
                 }
-                
+
                 foreach (Curve arc in topBeams)
                 {
                     var pmss = arc.DivideByCount(8, true);
@@ -288,10 +288,10 @@ namespace TimberStructureGenerator
                     foreach (var p in pmss)
                         pointss.Add(arc.PointAt(p));
                     for (int i = 0; i < pointss.Count - 1; i++)
-                        topBeamsA.Add((new Line(pointss[i], pointss[i+1]).ToNurbsCurve()));
+                        topBeamsA.Add(new Line(pointss[i], pointss[i + 1]).ToNurbsCurve());
                 }
-                
-               
+
+
                 //Creating the truss
                 for (int i = 1; i < bottompts.Count - 1; i++)
                 {
@@ -352,7 +352,7 @@ namespace TimberStructureGenerator
                     foreach (var p in pmss)
                         pointss.Add(arc.PointAt(p));
                     for (int i = 0; i < pointss.Count - 1; i++)
-                        topBeamsA.Add((new Line(pointss[i], pointss[i + 1]).ToNurbsCurve()));
+                        topBeamsA.Add(new Line(pointss[i], pointss[i + 1]).ToNurbsCurve());
                 }
 
                 //Creating the truss
@@ -417,7 +417,7 @@ namespace TimberStructureGenerator
                     foreach (var p in pmss)
                         pointss.Add(arc.PointAt(p));
                     for (int i = 0; i < pointss.Count - 1; i++)
-                        topBeamsA.Add((new Line(pointss[i], pointss[i + 1]).ToNurbsCurve()));
+                        topBeamsA.Add(new Line(pointss[i], pointss[i + 1]).ToNurbsCurve());
                 }
 
                 //Creating the truss
@@ -429,7 +429,7 @@ namespace TimberStructureGenerator
                     truss.Add(tr2.ToNurbsCurve());
                 }
 
-                for (int i = 1; i <bottompts.Count - 1; i++)
+                for (int i = 1; i < bottompts.Count - 1; i++)
                 {
                     Line tv = new Line(topnodepts[i], bottompts[i]);
                     truss.Add(tv.ToNurbsCurve());
@@ -488,7 +488,7 @@ namespace TimberStructureGenerator
                     foreach (var p in pmss)
                         pointss.Add(arc.PointAt(p));
                     for (int i = 0; i < pointss.Count - 1; i++)
-                        topBeamsA.Add((new Line(pointss[i], pointss[i + 1]).ToNurbsCurve()));
+                        topBeamsA.Add(new Line(pointss[i], pointss[i + 1]).ToNurbsCurve());
                 }
 
                 //Creating the truss
@@ -553,7 +553,7 @@ namespace TimberStructureGenerator
                     foreach (var p in pmss)
                         pointss.Add(arc.PointAt(p));
                     for (int i = 0; i < pointss.Count - 1; i++)
-                        topBeamsA.Add((new Line(pointss[i], pointss[i + 1]).ToNurbsCurve()));
+                        topBeamsA.Add(new Line(pointss[i], pointss[i + 1]).ToNurbsCurve());
                 }
 
                 //Creating the truss

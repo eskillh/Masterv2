@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Masterv2
+namespace Masterv2.Eskil
 {
     public static class MaterialList
     {
