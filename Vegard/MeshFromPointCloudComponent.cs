@@ -17,7 +17,7 @@ using Rhino.Geometry.Intersect;
 
 
 
-namespace MeshFromPointCloud
+namespace Masterv2.Vegard
 {
     public class MeshFromPointCloudComponent : GH_Component
     {
@@ -38,7 +38,7 @@ namespace MeshFromPointCloud
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddPointParameter("Points", "pts", "points from scan", GH_ParamAccess.tree);
         }
@@ -46,7 +46,7 @@ namespace MeshFromPointCloud
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddMeshParameter("Raw Mesh from points", "rawmfp", "raw mesh created from points", GH_ParamAccess.tree);
             pManager.AddMeshParameter("Refined Mesh from points", "refinedmfp", "refined mesh created from points", GH_ParamAccess.tree);
@@ -59,15 +59,15 @@ namespace MeshFromPointCloud
         /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
-        {            
+        {
             GH_Structure<GH_Point> pts_tree = new GH_Structure<GH_Point>();
             DA.GetDataTree(0, out pts_tree);
 
-           
+
 
             GH_Structure<GH_Mesh> rawHullMeshes = new GH_Structure<GH_Mesh>();
             GH_Structure<GH_Mesh> refinedHullMeshes = new GH_Structure<GH_Mesh>();
-            GH_Structure<GH_Brep> hullBreps = new GH_Structure<GH_Brep>();            
+            GH_Structure<GH_Brep> hullBreps = new GH_Structure<GH_Brep>();
             int t = 0;
             foreach (var pts_GH in pts_tree.Branches)
             {
@@ -80,9 +80,9 @@ namespace MeshFromPointCloud
                 {
                     Rhino.RhinoApp.WriteLine("At least 4 points are required to compute a 3D convex hull.");
                     return;
-                }                
+                }
 
-                
+
                 // Convert Points to MIConvexHull vertices
                 List<Vertex> vertices = new List<Vertex>();
                 foreach (var pt in pts)
@@ -130,7 +130,7 @@ namespace MeshFromPointCloud
                 hullMesh.Weld(0.01);
 
                 hullMesh.Normals.ComputeNormals();
-                
+
 
                 var edges = new List<Curve>();
                 var srf = new List<Brep>();
@@ -150,17 +150,17 @@ namespace MeshFromPointCloud
                     edges.Add(pl);
                     var crv = pl.GetSubCurves();
                     srf.Add(Brep.CreateEdgeSurface(crv));
-                                        
-                }               
-                
-                var hullBrep = Brep.JoinBreps(srf, 0.0001);               
+
+                }
+
+                var hullBrep = Brep.JoinBreps(srf, 0.0001);
 
 
                 Line axis;
-                Line.TryFitLineToPoints(pts, out axis);        
-                
-                
-                int TQCount = Convert.ToInt32(axis.Length)*10;
+                Line.TryFitLineToPoints(pts, out axis);
+
+
+                int TQCount = Convert.ToInt32(axis.Length) * 10;
 
 
                 QuadRemeshParameters prm = new QuadRemeshParameters
@@ -178,9 +178,9 @@ namespace MeshFromPointCloud
 
                 rawHullMeshes.Append(new GH_Mesh(hullMesh), path);
 
-                Mesh hullReMesh = hullMesh.QuadRemesh(prm);                
+                Mesh hullReMesh = hullMesh.QuadRemesh(prm);
                 refinedHullMeshes.Append(new GH_Mesh(hullReMesh), path);
-                
+
                 hullBreps.Append(new GH_Brep(hullBrep[0]), path);
                 t += 1;
             }
@@ -188,7 +188,7 @@ namespace MeshFromPointCloud
             DA.SetDataTree(0, rawHullMeshes);
             DA.SetDataTree(1, refinedHullMeshes);
             DA.SetDataTree(2, hullBreps);
-            
+
         }
 
         /// <summary>

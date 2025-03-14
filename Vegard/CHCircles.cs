@@ -7,7 +7,7 @@ using System.Linq;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 
-namespace MeshFromPointCloud
+namespace Masterv2.Vegard
 {
     public class CHCircles : GH_Component
     {
@@ -24,7 +24,7 @@ namespace MeshFromPointCloud
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddPointParameter("Points", "", "Points in 2D", GH_ParamAccess.list);
             pManager.AddNumberParameter("Length", "", "Length of lines to remove", GH_ParamAccess.item, 1e9);
@@ -33,7 +33,7 @@ namespace MeshFromPointCloud
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddLineParameter("Convex Hull Middle Line", "", "", GH_ParamAccess.item);
             pManager.AddPointParameter("Convex Hull Points", "", "", GH_ParamAccess.list);
@@ -50,7 +50,7 @@ namespace MeshFromPointCloud
         {
             var pts = new List<Point3d>();
             double maxLength = 0;
-            
+
             DA.GetDataList(0, pts);
             DA.GetData(1, ref maxLength);
 
@@ -70,7 +70,7 @@ namespace MeshFromPointCloud
             var pSeam = ptMin;
             pSeam.Transform(r);
             //ConvexHullMethods.ConvexHullIterative(pts, ptMin, pSeam, ptMin, maxLength, ptsTesting, 
-                //circles, pCenters, ghPts, g);
+            //circles, pCenters, ghPts, g);
 
             var pLine = new Polyline(ptsTesting);
 

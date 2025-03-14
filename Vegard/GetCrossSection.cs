@@ -10,7 +10,7 @@ using MIConvexHull;
 using Rhino.Display;
 using Rhino.Geometry;
 
-namespace MeshFromPointCloud
+namespace Masterv2.Vegard
 {
     public static class GetCrossSection
     {
@@ -36,16 +36,16 @@ namespace MeshFromPointCloud
             }
 
             var dataList = new List<(Point3d, double)>(); // list to sort points by parameter on CH
-                        
+
             var middlePts = new List<Point3d>();
 
             // find part of CH that matches the original pts
             for (int i = 0; i < ptsDistance.Count; ++i)
             {
                 var dist = ptsDistance[i];
-                if (dist < inp_dist)                                    
+                if (dist < inp_dist)
                     dataList.Add((ptsWorld[i], parameters[i])); // add the original ptsWorld and the parameters from the closest pt on CH to list
-                
+
                 else
                     middlePts.Add(ptsWorld[i]);
 
@@ -61,13 +61,13 @@ namespace MeshFromPointCloud
 
             var crossSectionCurve = new Polyline(ptsSorted);
             var segments = crossSectionCurve.GetSegments();
-            
+
 
             // get all parts of polyline longer than a certain length, because it is a "crack"
-            var cracks = new List<Line>();            
+            var cracks = new List<Line>();
             foreach (var seg in segments)
                 if (seg.Length > inp_segLength)
-                    cracks.Add(seg);            
+                    cracks.Add(seg);
 
             if (cracks.Count != 0)
             {
@@ -104,8 +104,8 @@ namespace MeshFromPointCloud
 
 
                     // find the shortest line in each interval along the crack
-                    var ptsShortestLines = new List<Line>();                    
-                    var spans = crack.Length/ inp_distBtwPtsCrack;
+                    var ptsShortestLines = new List<Line>();
+                    var spans = crack.Length / inp_distBtwPtsCrack;
                     for (int i = 0; i < Convert.ToInt32(spans); i++)
                     {
                         var intStart = 1 / Convert.ToDouble(spans) * Convert.ToDouble(i); // interval start
@@ -142,10 +142,10 @@ namespace MeshFromPointCloud
                 foreach (var item in newDataListSorted)
                     newPtsSorted.Add(item.Item1);
                 newPtsSorted.Add(newDataListSorted[0].Item1); // add first point to end of list for closed polyline               
-                
+
                 crossSectionCurve = new Polyline(newPtsSorted);
 
-            }            
+            }
 
             return crossSectionCurve;
         }
@@ -156,12 +156,12 @@ namespace MeshFromPointCloud
 
             foreach (var pt in ptsWorld)
             {
-                ptsProjectedOnFrame2d.Add(new Point2d(pt));                
+                ptsProjectedOnFrame2d.Add(new Point2d(pt));
             }
 
             // make convex hull to use as curve to sort along, to deal with a lot of edge cases
             var sortCurve = PolylineCurve.CreateConvexHull2d(ptsProjectedOnFrame2d.ToArray(), out int[] hullIndices);
-            
+
             var tParams = new List<double>();
 
             // get relative parameters from points rotated to same plane as convex hull
@@ -180,9 +180,9 @@ namespace MeshFromPointCloud
 
             var dataListSorted = dataList.OrderBy(item => item.Item2).ToList(); // sort using pts as values and params as keys
             var ptsProjectSorted = new List<Point3d>();
-            foreach (var item in dataListSorted)                            
+            foreach (var item in dataListSorted)
                 ptsProjectSorted.Add(item.Item1); // add sorted points to list
-            
+
             ptsProjectSorted.Add(dataListSorted[0].Item1); // add first point to the end of the list to make a closed curve            
 
             var crossSectionCurve = new Polyline(ptsProjectSorted); // fit a polyline through the sorted points to get perimeter curve
@@ -197,7 +197,7 @@ namespace MeshFromPointCloud
             int ind = -1;
             double maxDist = 0;
 
-            var n = pts.Count;            
+            var n = pts.Count;
 
             for (int i = 0; i < n; i++)
             {
@@ -247,7 +247,7 @@ namespace MeshFromPointCloud
 
                 }
                 var orthoLinesSorted = orthoLines.OrderBy(l => l.Length).ToList(); // sort lines based on length
-                                
+
                 var closestPoint = orthoLinesSorted[0].PointAt(1.0); // get pt from shortest line
                 newPoint = orthoLinesSorted[0].PointAt(0.0); // get ptOnLongLine from shortest line
                 ptsContainer.Add(closestPoint);
@@ -276,7 +276,7 @@ namespace MeshFromPointCloud
             QuickHull(pts, ptMin, ptMax, -1, maxLength, hullPts);
 
             var sortCurve = new Circle(line.PointAt(0.5), line.Length / 2).ToNurbsCurve(); // make sortcurve for sorting the basic CH pts
-            
+
             var hullPtsSorted = Methods.SortPointsAlongCurve(sortCurve, hullPts, true);
 
             var convexHull = new Polyline(hullPts);
@@ -349,4 +349,4 @@ namespace MeshFromPointCloud
     }
 }
 
-    
+

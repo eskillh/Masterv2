@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MIConvexHull;
 
-namespace MeshFromPointCloud
+namespace Masterv2.Vegard
 {
     public class Face : ConvexFace<Vertex, Face>
     {

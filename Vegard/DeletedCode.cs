@@ -7,14 +7,14 @@ using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 
-namespace MeshFromPointCloud
+namespace Masterv2.Vegard
 {
     public static class DeletedCode
     {
 
         // Given three collinear points p, q, r, the function checks if 
         // point q lies on line segment 'pr' 
-        static Boolean OnSegment(Point3d p, Point3d q, Point3d r)
+        static bool OnSegment(Point3d p, Point3d q, Point3d r)
         {
             if (q.X <= Math.Max(p.X, r.X) && q.X >= Math.Min(p.X, r.X) &&
                 q.Y <= Math.Max(p.Y, r.Y) && q.Y >= Math.Min(p.Y, r.Y))
@@ -31,13 +31,13 @@ namespace MeshFromPointCloud
             if (Convert.ToInt32(val) == 0) return 0; //colinear
 
 
-            return (Convert.ToInt32(val) > 0) ? 1 : 2; // clock or counterclock wise
+            return Convert.ToInt32(val) > 0 ? 1 : 2; // clock or counterclock wise
 
         }
 
         // The main function that returns true if line segment 'p1q1' 
         // and 'p2q2' intersect. 
-        static Boolean DoIntersect(Point3d p1, Point3d q1, Point3d p2, Point3d q2)
+        static bool DoIntersect(Point3d p1, Point3d q1, Point3d p2, Point3d q2)
         {
             // Find the four orientations needed for general and 
             // special cases 
@@ -154,7 +154,7 @@ namespace MeshFromPointCloud
             QuickHull_2(pts, n, pts[ind], p2, -ConvexHullMethods.SideOfLine(pts[ind], p2, p1), lenTol, hullPts);
         }
 
-              
+
 
 
         public static string ConvexHullWrapping(List<Point3d> pts, int n, List<Point3d> hullPts, double maxLength)

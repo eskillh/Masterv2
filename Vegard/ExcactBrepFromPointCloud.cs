@@ -7,7 +7,7 @@ using MIConvexHull;
 using Rhino.Geometry;
 using Rhino.Geometry.Intersect;
 
-namespace MeshFromPointCloud
+namespace Masterv2.Vegard
 {
     public class ExcactBrepFromPointCloud : GH_Component
     {
@@ -24,15 +24,15 @@ namespace MeshFromPointCloud
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
-        {            
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
+        {
             pManager.AddMeshParameter("Mesh From Points", "mfp", "MeshFromPointscan", GH_ParamAccess.item);
         }
 
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh from input", "mfi", "same mesh", GH_ParamAccess.item);
             pManager.AddPlaneParameter("Planes", "pls", "", GH_ParamAccess.list);
@@ -44,10 +44,10 @@ namespace MeshFromPointCloud
         /// </summary>
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
-        {            
+        {
             Mesh mesh = new Mesh();
             DA.GetData(0, ref mesh);
-            
+
             var vertices = mesh.Vertices;
             List<Point3d> pts = new List<Point3d>();
 
@@ -63,11 +63,11 @@ namespace MeshFromPointCloud
             Interval fc_dom = fit_curve.Domain;
 
             List<double> prms = new List<double>();
-            
+
             double n = 10;
-            for (int i=1; i < n-1; i++)
+            for (int i = 1; i < n - 1; i++)
             {
-                var par = Convert.ToDouble(i) / (n-1);
+                var par = Convert.ToDouble(i) / (n - 1);
                 prms.Add(fc_dom.ParameterAt(par));
             }
             perpFrames = fit_curve.GetPerpendicularFrames(prms);
@@ -75,24 +75,24 @@ namespace MeshFromPointCloud
             List<Curve> crossSections = new List<Curve>();
             List<List<Point3d>> crossSectionPoints = new List<List<Point3d>>();
             List<Point3d> middlePoints = new List<Point3d>();
-            
+
             for (int i = 0; i < perpFrames.Length; i++)
             {
                 var MeshPlaneInt = Intersection.MeshPlane(mesh, perpFrames[i]);
 
                 if (MeshPlaneInt != null)
                 {
-                    var cS =  MeshPlaneInt[0].ToNurbsCurve();
+                    var cS = MeshPlaneInt[0].ToNurbsCurve();
                     var divisionParams = cS.DivideByCount(100, false).ToList();
                     //crossSectionPoints.AddRange(cS.PointAt(divisionParams));
                     crossSections.Add(cS);
                 }
-                    
-                    
+
+
             }
 
-           
-            
+
+
 
 
 
@@ -103,10 +103,10 @@ namespace MeshFromPointCloud
                 intPnts.Add(s.PointAt(0.0));
             */
 
-            
+
             DA.SetDataList(1, perpFrames);
             DA.SetDataList(2, crossSections);
-            
+
 
         }
 

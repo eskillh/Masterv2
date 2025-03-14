@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace MeshFromPointCloud
+namespace Masterv2.Vegard
 {
     public class DelaunayMesh : GH_Component
     {
@@ -21,22 +21,22 @@ namespace MeshFromPointCloud
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddPointParameter("Points", "", "", GH_ParamAccess.list);
             pManager.AddNumberParameter("Max Length", "", "Max length of lines in Mesh", GH_ParamAccess.item, 1e9);
-            pManager.AddPlaneParameter("Plane", "", "Plane to project mesh to", GH_ParamAccess.item, 
-                new Plane(new Point3d(0,0,0), new Vector3d(0,0,1)));
+            pManager.AddPlaneParameter("Plane", "", "Plane to project mesh to", GH_ParamAccess.item,
+                new Plane(new Point3d(0, 0, 0), new Vector3d(0, 0, 1)));
         }
 
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "", "", GH_ParamAccess.item);
-            pManager.AddLineParameter("Naked Edges","","",GH_ParamAccess.item);
-            pManager.AddLineParameter("Interior Edges", "", "", GH_ParamAccess.item);           
+            pManager.AddLineParameter("Naked Edges", "", "", GH_ParamAccess.item);
+            pManager.AddLineParameter("Interior Edges", "", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -61,11 +61,11 @@ namespace MeshFromPointCloud
 
             //var newMesh = DelauneyMethods.RemoveShortLinesFromMesh(dMesh, maxLength, edges);            
             var newMesh = DelauneyMethods.RemoveShortEdges(dMesh, maxLength, edges);
-            
+
 
             DA.SetData(0, newMesh);
             DA.SetDataList(1, edges);
-            DA.SetDataList(2, testing);            
+            DA.SetDataList(2, testing);
 
         }
 

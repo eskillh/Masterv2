@@ -10,7 +10,7 @@ using Rhino.Geometry;
 
 
 
-namespace MeshFromPointCloud
+namespace Masterv2.Vegard
 {
     public class OMG_THIS_IS_IT : GH_Component
     {
@@ -27,7 +27,7 @@ namespace MeshFromPointCloud
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddPointParameter("Points from Scan", "pfc", "List of points", GH_ParamAccess.list);
             pManager.AddIntegerParameter("Divisions", "", "", GH_ParamAccess.item, 10);
@@ -38,10 +38,10 @@ namespace MeshFromPointCloud
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddBrepParameter("Brep of points", "", "", GH_ParamAccess.item);
-            pManager.AddPlaneParameter("Planes", "", "", GH_ParamAccess.list);            
+            pManager.AddPlaneParameter("Planes", "", "", GH_ParamAccess.list);
             pManager.AddPointParameter("Points close to plane", "", "", GH_ParamAccess.tree);
             pManager.AddPointParameter("points on Plane", "", "", GH_ParamAccess.tree);
             pManager.AddCurveParameter("crossSections", "", "", GH_ParamAccess.list);
@@ -73,30 +73,30 @@ namespace MeshFromPointCloud
             // Get Perp Frames along centerline
             List<double> parameters = new List<double>();
             //int n = Convert.ToInt32(div);
-            
+
             for (int i = 0; i < div; i++)
             {
                 var par = Convert.ToDouble(i) / (Convert.ToDouble(div) - 1);
                 parameters.Add(acDomain.ParameterAt(par));
             }
-            
-            var perpFrames = axisCurve.GetPerpendicularFrames(parameters).ToList();
-            
 
-            
+            var perpFrames = axisCurve.GetPerpendicularFrames(parameters).ToList();
+
+
+
             int ptsCount = pts.Count;
             int frameCount = perpFrames.Count;
 
 
             // Get point coordinates related to perpframes[0] (all frames are along the same z-axis)
-            Point3d[] ptsPlaneSpace = new Point3d[ptsCount];       
-            
+            Point3d[] ptsPlaneSpace = new Point3d[ptsCount];
+
 
             for (int i = 0; i < ptsCount; ++i)
-            {               
+            {
                 Point3d ptInPlaneSpace = new Point3d();
                 perpFrames[0].RemapToPlaneSpace(pts[i], out ptInPlaneSpace);
-                ptsPlaneSpace[i] = ptInPlaneSpace;           
+                ptsPlaneSpace[i] = ptInPlaneSpace;
             }
 
             var planeDist = new List<double>();
@@ -106,30 +106,30 @@ namespace MeshFromPointCloud
                 var pl_0 = perpFrames[0].Origin;
                 var pl_i = perpFrames[i].Origin;
                 var dist = pl_0.DistanceTo(pl_i);
-                
-                planeDist.Add(dist);               
+
+                planeDist.Add(dist);
             }
-            
+
 
             // Find the points that are within a tolerance of the plane
-            GH_Structure<GH_Point> ghPtsFrame = new GH_Structure<GH_Point>();            
+            GH_Structure<GH_Point> ghPtsFrame = new GH_Structure<GH_Point>();
 
             for (int i = 0; i < frameCount; ++i)
             {
                 var path = new GH_Path(i);
 
                 var tol_b = planeDist[i] - tol; // adjust tolerance to fit z-coord of other planes so we only have to remap the pts ones
-                var tol_t = planeDist[i] + tol;                
+                var tol_t = planeDist[i] + tol;
 
                 for (int j = 0; j < ptsCount; ++j)
                 {
-                    var pt = ptsPlaneSpace[j];                
+                    var pt = ptsPlaneSpace[j];
 
                     if (pt.Z > tol_b && pt.Z < tol_t) // cheack if point is within tolerance of plane
                     {
                         ghPtsFrame.Append(new GH_Point(pts[j]), path); // add points within tolerance                       
                     }
-                }                
+                }
             }
 
             // Project the points onto the plane and sort them in the same direction to make polylines
@@ -146,12 +146,12 @@ namespace MeshFromPointCloud
                 var ptsProjectedOnFrame = new List<Point3d>();
                 var ptsProjectedOnFrameWorld = new List<Point3d>();
                 var r = Transform.PlaneToPlane(perpFrames[i], worldPlane); // make transformation matrix from local plane to world plane
-                
-                for  (int j = 0; j < ghPtsFrame[path].Count; ++j)
-                {   
+
+                for (int j = 0; j < ghPtsFrame[path].Count; ++j)
+                {
                     var pt = ghPtsFrame[path][j];
                     perpFrames[i].ClosestParameter(pt.Value, out double s, out double t);  // get params of closest point on plane
-                    
+
                     var ptPlane = perpFrames[i].PointAt(s, t);
                     ptsProjectedOnFrame.Add(ptPlane); // point projected on local plane
 
@@ -162,23 +162,23 @@ namespace MeshFromPointCloud
                 var ptsProjectedOnFrame2d = new List<Point2d>(); // prepare list to hold 2dPoints for convex hull
 
                 foreach (var pt in ptsProjectedOnFrameWorld)
-                {                                    
+                {
                     ptsProjectedOnFrame2d.Add(new Point2d(pt));
                     test2d.Append(new GH_Point(pt), path);
                 }
-                
+
                 // make convex hull to use as curve to sort along, to deal with a lot of edge cases
                 var sortCurve = PolylineCurve.CreateConvexHull2d(ptsProjectedOnFrame2d.ToArray(), out int[] hullIndices);
 
                 convexHull.Add(sortCurve);
-                var tParams = new List<double>();                
+                var tParams = new List<double>();
 
                 // get relative parameters from points rotated to same plane as convex hull
                 foreach (var pt in ptsProjectedOnFrameWorld)
-                {                    
-                    sortCurve.ClosestPoint(pt, out double t);                    
-                    tParams.Add(t);                    
-                }                
+                {
+                    sortCurve.ClosestPoint(pt, out double t);
+                    tParams.Add(t);
+                }
 
                 var dataList = new List<(Point3d, double)>();
 
@@ -200,7 +200,7 @@ namespace MeshFromPointCloud
                 pLine.DeleteShortSegments(2); // refine polyline
                 crossSections.Add(pLine.ToNurbsCurve());
 
-                
+
             }
 
             // loft all crossSection curves using LoftRebuild to get a nice brep
@@ -214,7 +214,7 @@ namespace MeshFromPointCloud
             DA.SetDataList(4, crossSections);
             DA.SetDataList(5, convexHull);
             DA.SetDataTree(6, test2d);
-            
+
 
 
         }

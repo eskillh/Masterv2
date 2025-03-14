@@ -4,7 +4,7 @@ using System.Drawing;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace MeshFromPointCloud
+namespace Masterv2.Vegard
 {
     public class GetBoundingBox : GH_Component
     {
@@ -21,7 +21,7 @@ namespace MeshFromPointCloud
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddPointParameter("Points", "pts", "points from scan", GH_ParamAccess.list);
         }
@@ -29,9 +29,9 @@ namespace MeshFromPointCloud
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddBrepParameter("bb from points", "bbfp", "HelpBrep created witb bb", GH_ParamAccess.item);            
+            pManager.AddBrepParameter("bb from points", "bbfp", "HelpBrep created witb bb", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -87,13 +87,13 @@ namespace MeshFromPointCloud
             bbMesh.QuadRemesh(prm);
             */
 
-            DA.SetData(0, bb);            
+            DA.SetData(0, bb);
         }
 
         /// <summary>
         /// Provides an Icon for the component.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
+        protected override Bitmap Icon
         {
             get
             {
