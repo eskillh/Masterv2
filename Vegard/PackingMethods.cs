@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using KangarooSolver.Goals;
+
 using Rhino;
 using Rhino.DocObjects.Tables;
 using Rhino.Geometry;
 using Rhino.Geometry.Intersect;
 using static Rhino.Render.TextureGraphInfo;
 
-namespace Masterv2.Vegard
+namespace MeshFromPointCloud
 {
     public static class PackingMethods
     {
@@ -32,23 +32,23 @@ namespace Masterv2.Vegard
                 var lastRectangle = rectangle;
                 rectangle = new Rectangle3d(evalPlane, crossSection.X, crossSection.Y);
 
-                Intersection.BrepPlane(brep, evalPlane, RhinoDoc.ActiveDoc.ModelAbsoluteTolerance, out Curve[] intCrvs, out Point3d[] intPts);
+                Intersection.BrepPlane(brep, evalPlane, Rhino.RhinoDoc.ActiveDoc.ModelAbsoluteTolerance, out Curve[] intCrvs, out Point3d[] intPts);
                 var perim = intCrvs[0];
 
-
+                
                 var perimSubCurves = perim.GetSubCurves();
                 var perimLines = new List<Line>();
                 foreach (var subCurve in perimSubCurves)
                     perimLines.Add(new Line(subCurve.PointAtStart, subCurve.PointAtEnd));
 
                 var rectEdges = rectangle.ToPolyline().GetSegments().ToList();
-
-
-
+                
+                
+                
                 foreach (var rectEdge in rectEdges)
                 {
-                    var intEvents = Intersection.CurveLine(perim, rectEdge, RhinoDoc.ActiveDoc.ModelAbsoluteTolerance,
-                        RhinoDoc.ActiveDoc.ModelAbsoluteTolerance);
+                    var intEvents = Intersection.CurveLine(perim, rectEdge, Rhino.RhinoDoc.ActiveDoc.ModelAbsoluteTolerance,
+                        Rhino.RhinoDoc.ActiveDoc.ModelAbsoluteTolerance);
                     if (intEvents.Count > 0)
                     {
                         foreach (var intersect in intEvents)
@@ -62,7 +62,7 @@ namespace Masterv2.Vegard
                         }
                     }
                 }
-
+                
                 dist += Math.Min(10, line.Length - dist);
             }
             return rectangle;

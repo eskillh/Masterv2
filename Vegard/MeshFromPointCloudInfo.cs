@@ -3,7 +3,7 @@ using System.Drawing;
 using Grasshopper;
 using Grasshopper.Kernel;
 
-namespace Masterv2.Vegard
+namespace MeshFromPointCloud
 {
     public class MeshFromPointCloudInfo : GH_AssemblyInfo
     {

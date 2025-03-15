@@ -6,12 +6,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Grasshopper.Kernel.Geometry.Delaunay;
-using gs;
 using Rhino.Geometry;
 
 using static MeshFromPointCloud.Triangle;
 
-namespace Masterv2.Vegard
+namespace MeshFromPointCloud
 {
     public static class DelauneyMethods
     {
@@ -21,14 +20,14 @@ namespace Masterv2.Vegard
             mesh.GetNakedEdgePointStatus();
             var nakedEdges = mesh.GetNakedEdges().ToList();
             var longestEdge = nakedEdges.Max(x => x.Length);
-            double oldLongestEdge = 0;
+            double oldLongestEdge = 0;            
 
             while (longestEdge > maxLength && longestEdge != oldLongestEdge)
             {
                 var faces = mesh.Faces;
                 var vertices = mesh.Vertices;
                 var edgeVertices = mesh.GetNakedEdgePointStatus().ToList();
-                for (int i = 0; i < faces.Count; i++)
+                for (int i = 0; i < faces.Count; i++)               
                 {
                     var face = faces[i];
 
@@ -44,29 +43,29 @@ namespace Masterv2.Vegard
 
                         edges.AddRange(new[] { edgeAB.ToNurbsCurve(), edgeBC.ToNurbsCurve(), edgeAC.ToNurbsCurve() });
 
-                        if (edgeAB.Length > maxLength || edgeAC.Length > maxLength || edgeBC.Length > maxLength)
+                        if ((edgeAB.Length > maxLength || edgeAC.Length > maxLength || edgeBC.Length > maxLength))
                         {
                             mesh.Faces.RemoveAt(i);
                         }
                     }
                 }
-
+                
                 mesh.Vertices.CullUnused();
                 mesh.Compact();
-
-                oldLongestEdge = longestEdge;
+                
+                oldLongestEdge = longestEdge;                
                 nakedEdges = mesh.GetNakedEdges().ToList();
                 longestEdge = nakedEdges.Count > 0 ? nakedEdges.Max(x => x.Length) : 0;
-            }
-            return mesh;
+            }    
+            return mesh;    
         }
 
         private static bool IsEdgeInNakedEdges(Polyline edge, List<Polyline> nakedEdges)
         {
             foreach (var nakedEdge in nakedEdges)
             {
-                if (edge.PointAt(0) == nakedEdge.PointAt(0) && edge.PointAt(1) == nakedEdge.PointAt(1)
-                    || edge.PointAt(0) == nakedEdge.PointAt(1) && edge.PointAt(1) == nakedEdge.PointAt(0))
+                if (((edge.PointAt(0) == nakedEdge.PointAt(0)  && edge.PointAt(1) == nakedEdge.PointAt(1)) 
+                    || (edge.PointAt(0) == nakedEdge.PointAt(1) && edge.PointAt(1) == nakedEdge.PointAt(0))))
                 {
                     return true;
                 }
@@ -81,12 +80,12 @@ namespace Masterv2.Vegard
             var allEdges = new List<Polyline>();
             var nakedEdges = mesh.GetNakedEdges().ToList();
             var nakedEdgesSorted = nakedEdges.OrderBy(edge => edge.Length);
-            var includeFaces = new List<bool>();
+            var includeFaces = new List<bool>();           
 
 
             foreach (var face in faces)
 
-            {
+            {   
                 var p1 = new Point3d(vertices[face.A]);
                 var p2 = new Point3d(vertices[face.B]);
                 var p3 = new Point3d(vertices[face.C]);
@@ -136,17 +135,17 @@ namespace Masterv2.Vegard
 
             var ptCenter = new Point3d(xSum / pts.Count, ySum / pts.Count, 0);
             var localPlane = new Plane(ptCenter, new Vector3d(0, 0, 1));
-
+                        
             var triangles = new List<List<Point3d>>();
-
+            
             var superCircle = new Circle(localPlane, 2 * (lineX.Length + lineY.Length));
-
+            
 
             var p1 = superCircle.PointAt(0);
             var p2 = superCircle.PointAt(0.333 * 2 * Math.PI);
             var p3 = superCircle.PointAt(0.666 * 2 * Math.PI);
-
-
+            
+                        
             var superTriangle = new List<Point3d>() { p1, p2, p3 };
             triangles.Add(superTriangle);
 
@@ -156,8 +155,8 @@ namespace Masterv2.Vegard
 
 
             foreach (var pt in pts)
-            {
-                var edges = new List<List<Point3d>>();
+            {                
+                var edges = new List<List<Point3d>>();                
 
                 triangles = triangles.Where(triangle =>
                 {
@@ -185,12 +184,12 @@ namespace Masterv2.Vegard
                     // See if edge is unique
                     for (var j = 0; j < edges.Count; ++j)
                     {
-                        if (i != j
+                        if (i != j 
                             && (edges[i][0] == edges[j][0] && edges[i][1] == edges[j][1]
                                 || edges[i][0] == edges[j][1] && edges[i][1] == edges[j][0]))
                         {
                             isUnique = false;
-                            testing.Add(new Line(edges[i][0], edges[i][1]));
+                            testing.Add(new Line(edges[i][0], edges[i][1]));                            
                             break;
                         }
                     }
@@ -204,12 +203,12 @@ namespace Masterv2.Vegard
 
                 foreach (var edge in edges)
                 {
-                    var triangle = new List<Point3d>() { edge[0], edge[1], pt };
+                    var triangle = new List<Point3d>() { edge[0], edge[1], pt};
                     testing.Add(new Line(triangle[0], triangle[1]));
                     testing.Add(new Line(triangle[1], triangle[2]));
                     testing.Add(new Line(triangle[2], triangle[0]));
-                    triangles.Add(triangle);
-                }
+                    triangles.Add(triangle); 
+                }                            
 
 
             }
@@ -220,7 +219,7 @@ namespace Masterv2.Vegard
                  triangle[1].Equals(superTriangle[0]) || triangle[1].Equals(superTriangle[1]) || triangle[1].Equals(superTriangle[2]) ||
                  triangle[2].Equals(superTriangle[0]) || triangle[2].Equals(superTriangle[1]) || triangle[2].Equals(superTriangle[2])
                  )
-             ).ToList();
+             ).ToList();            
 
             foreach (var triangle in triangles)
             {
@@ -236,6 +235,6 @@ namespace Masterv2.Vegard
 
 
         }
-
+        
     }
 }

@@ -6,13 +6,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using KangarooSolver.Goals;
+
 using Rhino.Geometry;
 
-namespace Masterv2.Vegard
+namespace MeshFromPointCloud
 {
     public static class ConvexHullMethods
-    {
+    {        
         public static int SideOfLine(Point3d p1, Point3d p2, Point3d pt)
         {
             var val = (pt.Y - p1.Y) * (p2.X - p1.X)
@@ -34,10 +34,10 @@ namespace Masterv2.Vegard
 
             return Math.Abs(val);
         }
-
-        public static void PtBetween(List<Point3d> pts, Point3d p1, Point3d p2, double maxLength,
+        
+        public static void PtBetween(List<Point3d> pts, Point3d p1, Point3d p2, double maxLength, 
             List<Point3d> ptsContainer, List<Line> shortestLines)
-        {
+        {            
             var longLine = new Line(p1, p2); // make line            
 
             var ptsOnLongLine = new List<Point3d>(); // hold the projected points on line
@@ -54,7 +54,7 @@ namespace Masterv2.Vegard
                     var t = longLine.ClosestParameter(pt); // find the closest pt on line for all pts                    
                     var tol = 1e-9;
 
-                    if (t > tol && t < 1 - tol) // only use the orthogonal points
+                    if (t > tol && t < 1-tol) // only use the orthogonal points
                     {
                         ptsOnLongLine.Add(longLine.PointAt(t));
                         ptsReduced.Add(pt);
@@ -68,16 +68,16 @@ namespace Masterv2.Vegard
                 var closestPoint = orthoLinesSorted[0].PointAt(1.0); // get pt from shortest line
                 newPoint = orthoLinesSorted[0].PointAt(0.0); // get ptOnLongLine from shortest line
                 ptsContainer.Add(closestPoint);
-            }
+            }            
 
             else
                 return;
 
             PtBetween(ptsReduced, newPoint, p1, maxLength, ptsContainer, shortestLines); // check if part 1 of new line is too long
             PtBetween(ptsReduced, newPoint, p2, maxLength, ptsContainer, shortestLines); // check if part 2 of new line is too long          
-
+                       
         }
-        public static void QuickHull(List<Point3d> pts, int n, Point3d p1, Point3d p2, int side,
+        public static void QuickHull(List<Point3d> pts, int n, Point3d p1, Point3d p2, int side, 
             double maxLength, List<Point3d> hullPts, List<Point3d> sortHullPts, List<Line> shortestLines)
         {
             int ind = -1;
@@ -94,7 +94,7 @@ namespace Masterv2.Vegard
             }
             if (ind == -1)
             {
-
+                
                 //PtBetween_1(pts, p1, p2, maxLength, hullPts, shortestLines);
 
                 if (hullPts.Contains(p1) == false)
@@ -116,10 +116,10 @@ namespace Masterv2.Vegard
             QuickHull(pts, n, pts[ind], p2, -SideOfLine(pts[ind], p2, p1), maxLength, hullPts, sortHullPts, shortestLines);
         }
 
+        
 
+        
 
-
-
-
-    }
+        
+    }    
 }

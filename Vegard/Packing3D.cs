@@ -6,7 +6,7 @@ using Grasshopper.Kernel;
 using Rhino.Geometry;
 using Rhino.Geometry.Intersect;
 
-namespace Masterv2.Vegard
+namespace MeshFromPointCloud
 {
     public class Packing3D : GH_Component
     {
@@ -23,7 +23,7 @@ namespace Masterv2.Vegard
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddCurveParameter("Brep sections", "", "", GH_ParamAccess.list);
             pManager.AddBrepParameter("Brep", "", "", GH_ParamAccess.item);
@@ -32,9 +32,9 @@ namespace Masterv2.Vegard
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddBrepParameter("Fitted beam", "", "", GH_ParamAccess.list);
+            pManager.AddBrepParameter("Fitted beam", "", "", GH_ParamAccess.list);            
             pManager.AddCurveParameter("curves", "", "", GH_ParamAccess.list);
             pManager.AddCurveParameter("Cross sections", "", "", GH_ParamAccess.list);
             pManager.AddPointParameter("testing", "", "", GH_ParamAccess.list);
@@ -52,7 +52,7 @@ namespace Masterv2.Vegard
             DA.GetDataList(0, brepSections);
             DA.GetData(1, ref brep);
 
-
+            
             var crossSections = new List<Rectangle3d>();
             foreach (var brepSection in brepSections)
             {
@@ -78,7 +78,7 @@ namespace Masterv2.Vegard
                 testingList.Add(csPoint);
                 var csMin = PackingMethods.CrossSectionToVolume(crossSection, brep, csPoint, axis.PointAt(0)).ToNurbsCurve();
                 var csMax = PackingMethods.CrossSectionToVolume(crossSection, brep, csPoint, axis.PointAt(1)).ToNurbsCurve();
-                curvesForLoft.AddRange(new[] { csMin, csMax });
+                curvesForLoft.AddRange(new[] {csMin, csMax});
                 var volume = Brep.CreateFromLoft(curvesForLoft, Point3d.Unset, Point3d.Unset, LoftType.Normal, false)[0];
                 var volumeCapped = volume.CapPlanarHoles(0.0001);
                 volumes.Add(volumeCapped);

@@ -5,11 +5,11 @@ using Ed.Eto;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using MIConvexHull;
+
 using Rhino.Geometry;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 
-namespace Masterv2.Vegard
+namespace MeshFromPointCloud
 {
     public class testingPerimCurve : GH_Component
     {
@@ -26,7 +26,7 @@ namespace Masterv2.Vegard
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddPointParameter("Points2d", "pts", "", GH_ParamAccess.tree);
             pManager.AddNumberParameter("tolDist", "", "", GH_ParamAccess.item, 3);
@@ -39,17 +39,17 @@ namespace Masterv2.Vegard
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddCurveParameter("crossSectionCurves", "", "", GH_ParamAccess.list);
             pManager.AddCurveParameter("getCrossSectionCurves", "", "", GH_ParamAccess.list);
-
+            
             pManager.AddPointParameter("convexHullPts", "", "", GH_ParamAccess.tree);
-            pManager.AddCurveParameter("crossSectionCurve", "", "", GH_ParamAccess.tree);
+            pManager.AddCurveParameter("crossSectionCurve", "", "", GH_ParamAccess.tree);            
             pManager.AddPointParameter("crossSectionPts", "", "", GH_ParamAccess.tree);
             pManager.AddCurveParameter("CH", "", "", GH_ParamAccess.tree);
             pManager.AddLineParameter("cracks", "", "", GH_ParamAccess.tree);
-
+            
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Masterv2.Vegard
 
 
             var crossSectionCurves = new List<Curve>();
-            var getCrossSectionCurves = new List<Curve>();
+            var getCrossSectionCurves = new List<Curve>();            
 
             var ghPtsSorted = new GH_Structure<GH_Point>();
             var ghCrossSectionCurve = new GH_Structure<GH_Curve>();
@@ -84,7 +84,7 @@ namespace Masterv2.Vegard
             var ghCracks = new GH_Structure<GH_Curve>();
 
             for (int g = 0; g < ghPtsTree.PathCount; g++)
-            {
+            {                
                 var path0 = ghPtsTree.Paths[g];
                 var ghPts = ghPtsTree.Branches[g];
                 var pts = new List<Point3d>();
@@ -115,7 +115,7 @@ namespace Masterv2.Vegard
 
                 var dataList = new List<(Point3d, double)>(); // list to sort points by parameter on CH
 
-
+                
                 var crossSectionPts = new List<Point3d>();
                 var middlePts = new List<Point3d>();
 
@@ -141,7 +141,7 @@ namespace Masterv2.Vegard
                     ptsSorted.Add(item.Item1);
                     ghPtsSorted.Append(new GH_Point(item.Item1));
                 }
-
+                    
 
                 ptsSorted.Add(sortedDataList[0].Item1);
                 ghPtsSorted.Append(new GH_Point(sortedDataList[0].Item1));
@@ -196,7 +196,7 @@ namespace Masterv2.Vegard
 
                     // find the shortest line in each interval along the crack
                     var ptsShortestLines = new List<Line>();
-
+                    
                     var spans = crack.Length / inp_distBtwPtsCrack;
                     for (int i = 0; i < Convert.ToInt32(spans); i++)
                     {
@@ -239,7 +239,7 @@ namespace Masterv2.Vegard
                     newPtsSorted.Add(item.Item1);
                     ghNewPtsSorted.Append(new GH_Point(item.Item1), path0);
                 }
-
+                    
                 newPtsSorted.Add(newDataListSorted[0].Item1); // add first point to end of list for closed polyline
                 ghNewPtsSorted.Append(new GH_Point(newDataListSorted[0].Item1), path0);
 
@@ -250,22 +250,22 @@ namespace Masterv2.Vegard
 
                 ghCrossSectionCurve.Append(new GH_Curve(crossSectionCurve), path0);
                 var getCrossSectionCurve = GetCrossSection.CrossSectionEnd(pts, inp_dist, inp_segLength, inp_distBtwPtsCrack).ToNurbsCurve();
-                getCrossSectionCurves.Add(getCrossSectionCurve);
-
+                getCrossSectionCurves.Add(getCrossSectionCurve);               
+                
 
             }
-
+            
 
 
             DA.SetDataList(0, crossSectionCurves);
             DA.SetDataList(1, getCrossSectionCurves);
-
+            
             DA.SetDataTree(2, ghPtsSorted); // pts
             DA.SetDataTree(3, ghCrossSectionCurve); //curves            
             DA.SetDataTree(4, ghNewPtsSorted); // pts
             DA.SetDataTree(5, ghConvexHull); //crv
             DA.SetDataTree(6, ghCracks); //crv
-
+            
 
 
 

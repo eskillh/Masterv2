@@ -6,7 +6,7 @@ using Grasshopper.Kernel;
 using Rhino.Geometry;
 using Rhino.Geometry.Intersect;
 
-namespace Masterv2.Vegard
+namespace MeshFromPointCloud
 {
     public class Packing2D : GH_Component
     {
@@ -23,17 +23,17 @@ namespace Masterv2.Vegard
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddCurveParameter("Perimeter Curve", "", "", GH_ParamAccess.item);
+            pManager.AddCurveParameter("Perimeter Curve", "", "", GH_ParamAccess.item);            
         }
 
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddCurveParameter("Cross Section", "", "", GH_ParamAccess.item);
+            pManager.AddCurveParameter("Cross Section","","",GH_ParamAccess.item);
             pManager.AddPointParameter("Intersection Points", "", "", GH_ParamAccess.list);
             pManager.AddPlaneParameter("Plane of Perimeter Curve", "", "", GH_ParamAccess.item);
             pManager.AddRectangleParameter("Rectangles", "", "", GH_ParamAccess.list);
@@ -55,21 +55,21 @@ namespace Masterv2.Vegard
             var perimLines = new List<Line>();
             foreach (var subCurve in perimSubCurves)
                 perimLines.Add(new Line(subCurve.PointAtStart, subCurve.PointAtEnd));
-
+            
 
             var centerPlane = new Plane(perimAreaMP.Centroid, plane.Normal);
 
-
-            var angle = Math.PI;
-
+            
+            var angle = Math.PI;            
+            
             var rectangles = new List<Rectangle3d>();
             var intPts = new List<Point3d>();
 
-
+            
             var test = new List<int>();
             var rect = new Rectangle3d();
 
-
+            
 
             double deg = 0;
             while (deg < angle)
@@ -79,7 +79,7 @@ namespace Masterv2.Vegard
 
                 //var xNegStart = 100; var xPosStart = 100; var yNegStart = 100; var yPosStart = 100;
                 double startValue = 10;
-                var rectangleDimensions = new List<double>()
+                var rectangleDimensions = new List<double>() 
                 { startValue, startValue, startValue, startValue };
 
                 var intersections = new List<int>() { 1, 1, 1, 1 };
@@ -144,7 +144,7 @@ namespace Masterv2.Vegard
                 deg += 0.01;
             }
 
-
+            
             var biggestRectangle = new Rectangle3d();
             double biggestArea = 0;
             foreach (var rectangle in rectangles)
@@ -156,7 +156,7 @@ namespace Masterv2.Vegard
                     biggestRectangle = rectangle;
                 }
             }
-
+                
 
             DA.SetData(0, biggestRectangle);
             DA.SetDataList(1, intPts);

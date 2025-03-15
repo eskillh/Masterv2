@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Rhino.Geometry;
 
-namespace Masterv2.Vegard
+namespace MeshFromPointCloud
 {
     public static class Methods
     {

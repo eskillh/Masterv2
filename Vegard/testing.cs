@@ -4,11 +4,10 @@ using System.Drawing;
 using System.Linq;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types.Transforms;
-using KangarooSolver.Goals;
 using Rhino.Geometry;
 using Rhino.Geometry.Intersect;
 
-namespace Masterv2.Vegard
+namespace MeshFromPointCloud
 {
     public class testing : GH_Component
     {
@@ -25,7 +24,7 @@ namespace Masterv2.Vegard
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "", "", GH_ParamAccess.item);
         }
@@ -33,7 +32,7 @@ namespace Masterv2.Vegard
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddLineParameter("Curves", "", "", GH_ParamAccess.list);
             pManager.AddPointParameter("Points", "", "", GH_ParamAccess.list);
@@ -55,13 +54,13 @@ namespace Masterv2.Vegard
             {
                 pts.Add(new Point3d(v.X, v.Y, v.Z));
             }
-
+            
             Line axis;
             Line.TryFitLineToPoints(pts, out axis);
             Curve fit_curve = axis.ToNurbsCurve();
             Plane planeMiddle;
             double dmn = fit_curve.Domain.Length;
-            fit_curve.PerpendicularFrameAt(0.5 * dmn, out planeMiddle);
+            fit_curve.PerpendicularFrameAt(0.5*dmn, out planeMiddle);
 
             var pLine = Intersection.MeshPlane(hullMesh, planeMiddle);
 
@@ -71,14 +70,14 @@ namespace Masterv2.Vegard
             foreach (var s in seg)
                 intPnts.Add(s.PointAt(0.0));
 
-
-            List<Line> diagCand = new List<Line>();
+            
+            List<Line> diagCand = new List<Line>();            
             for (int i = 0; i < intPnts.Count; i++)
             {
                 foreach (var intPnt in intPnts)
                 {
                     var ln = new Line(intPnt, intPnts[i]);
-                    diagCand.Add(ln);
+                    diagCand.Add(ln);                    
                 }
             }
 
@@ -128,7 +127,7 @@ namespace Masterv2.Vegard
         /// <summary>
         /// Provides an Icon for the component.
         /// </summary>
-        protected override Bitmap Icon
+        protected override System.Drawing.Bitmap Icon
         {
             get
             {

@@ -6,7 +6,7 @@ using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 
-namespace Masterv2.Vegard
+namespace MeshFromPointCloud
 {
     public class BeamFromPts : GH_Component
     {
@@ -23,7 +23,7 @@ namespace Masterv2.Vegard
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddPointParameter("Points from Scan", "pfc", "List of points", GH_ParamAccess.list);
             pManager.AddIntegerParameter("Divisions", "", "How many divisions along beam", GH_ParamAccess.item, 10);
@@ -37,12 +37,12 @@ namespace Masterv2.Vegard
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddBrepParameter("Beam", "", "", GH_ParamAccess.item);
             pManager.AddPlaneParameter("Planes", "", "", GH_ParamAccess.list);
-            pManager.AddPointParameter("Points close to plane", "", "", GH_ParamAccess.tree);
-            pManager.AddCurveParameter("crossSections", "", "", GH_ParamAccess.list);
+            pManager.AddPointParameter("Points close to plane", "", "", GH_ParamAccess.tree);            
+            pManager.AddCurveParameter("crossSections", "", "", GH_ParamAccess.list);            
         }
 
         /// <summary>
@@ -138,7 +138,7 @@ namespace Masterv2.Vegard
             var crossSections = new List<Curve>();
             //var crossSectionsPline = new List<Polyline>();            
 
-            var worldPlane = new Plane(new Point3d(0, 0, 0), new Vector3d(1, 0, 0), new Vector3d(0, 1, 0));
+            var worldPlane = new Plane(new Point3d(0, 0, 0), new Vector3d(1, 0, 0), new Vector3d(0, 1, 0));            
 
             for (int i = 0; i < frameCount; ++i)
             {
@@ -159,40 +159,40 @@ namespace Masterv2.Vegard
                     ptPlane.Transform(rToWorld); // transform to world plane
                     ptsProjectedOnFrameWorld.Add(ptPlane); // point projected on world plane                    
                 }
-
-
-                if (i == 0 || i == frameCount - 1)
-                {
-                    var crossSection = GetCrossSection.CrossSectionEndQH(ptsProjectedOnFrameWorld, maxLength).ToNurbsCurve();
+                
+                
+                if (i == 0 || i == frameCount-1)
+                {                    
+                    var crossSection = GetCrossSection.CrossSectionEndQH(ptsProjectedOnFrameWorld, maxLength).ToNurbsCurve();                    
                     crossSection.Transform(rToLocal);
                     var crossSectionRebuilt = crossSection.Rebuild(rebuildPts, degree, false);
                     //crossSectionRebuilt.RemoveShortSegments(deleteShortSeg);
-                    crossSections.Add(crossSectionRebuilt);
-                }
+                    crossSections.Add(crossSectionRebuilt);                    
+                }               
 
                 else
-                {
+                {                    
                     var crossSection = GetCrossSection.CrossSection(ptsProjectedOnFrame, ptsProjectedOnFrameWorld).ToNurbsCurve();
                     var crossSectionRebuilt = crossSection.Rebuild(rebuildPts, degree, false);
                     //crossSectionRebuilt.RemoveShortSegments(deleteShortSeg);
                     crossSections.Add(crossSectionRebuilt);
                 }
-
-
+                    
+                
             }
 
             var mainCurve = crossSections[0];
             var mainPoint = mainCurve.PointAtStart;
             var seamLine = new Line(mainPoint, axis.Direction);
 
-            foreach (var cs in crossSections)
+            foreach(var cs in crossSections)
             {
                 cs.ClosestPoint(mainPoint, out double t);
                 cs.ChangeClosedCurveSeam(t);
             }
 
             // refine crossSectionPline to be smooth so loft will be better
-
+            
 
             // loft all crossSection curves using LoftRebuild to get a nice brep
             var loftedBeam = Brep.CreateFromLoft(crossSections, Point3d.Unset, Point3d.Unset, LoftType.Tight, false)[0];
@@ -200,7 +200,7 @@ namespace Masterv2.Vegard
 
             DA.SetData(0, test);
             DA.SetDataList(1, perpFrames);
-            DA.SetDataTree(2, ghPtsFrame);
+            DA.SetDataTree(2, ghPtsFrame);            
             DA.SetDataList(3, crossSections);
         }
 
